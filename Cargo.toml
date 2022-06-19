@@ -1,0 +1,11 @@
+[package]
+name = "chiral-db"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+# chiral_db_sources = { package = "chiral_db_sources", git = "https://github.com/chiral-data/chiral-db-sources.git", branch = "dev" }
+chiral_db_sources = { package = "chiral-db-sources", path = "../chiral-db-sources", version = "0.1.0" } 
+# openbabel = "0.2.3"
+openbabel = { package = "openbabel", path = "../openbabel-rust", version = "0.2.3" }
+cxx = "1.0"
