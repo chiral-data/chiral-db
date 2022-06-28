@@ -1,3 +1,19 @@
+//! ChiralDB Fingerprint
+//! 
+//! # FingerprintDocument: a group of fingerprint data
+//! 
+//! Create a FingerprintDocument from a list of SMILES and use SMILES as data IDs.
+//! ```
+//! use chiral_db::fingerprint;
+//! 
+//! let fpk = fingerprint::Kind::OpenBabel { kind: openbabel::fingerprint::Kind::ECFP4 { nbits: 2048} };
+//! let smiles_vec = vec![
+//!     String::from("c1ccccc1"),
+//!     String::from("CCCCCCN"),
+//! ];
+//! let _fp_doc = fingerprint::FingerprintDocument::new_from_smiles_vec(&smiles_vec, &fpk, &smiles_vec);
+//! ```
+
 extern crate openbabel;
 extern crate chiral_db_sources;
 use crate::utils;
@@ -19,11 +35,19 @@ pub fn get_fingerprint_from_smiles(fpk: &Kind, smiles: &String) -> Vec<u32> {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Kind {
     OpenBabel { kind: openbabel::fingerprint::Kind }
 }
 
+pub fn kind_openbabel_ecfp0(nbits: u32) -> Kind { Kind::OpenBabel { kind: openbabel::fingerprint::Kind::ECFP0 { nbits } } }
+pub fn kind_openbabel_ecfp2(nbits: u32) -> Kind { Kind::OpenBabel { kind: openbabel::fingerprint::Kind::ECFP2 { nbits } } }
+pub fn kind_openbabel_ecfp4(nbits: u32) -> Kind { Kind::OpenBabel { kind: openbabel::fingerprint::Kind::ECFP4 { nbits } } }
+pub fn kind_openbabel_ecfp6(nbits: u32) -> Kind { Kind::OpenBabel { kind: openbabel::fingerprint::Kind::ECFP6 { nbits } } }
+pub fn kind_openbabel_ecfp8(nbits: u32) -> Kind { Kind::OpenBabel { kind: openbabel::fingerprint::Kind::ECFP8 { nbits } } }
+pub fn kind_openbabel_ecfp10(nbits: u32) -> Kind { Kind::OpenBabel { kind: openbabel::fingerprint::Kind::ECFP10 { nbits } } }
+
+#[derive(Debug)]
 pub struct FingerprintDocument {
     kind: Kind,
     ids: Vec<String>,
@@ -36,7 +60,7 @@ impl FingerprintDocument {
         self.ids.len()
     }
 
-    fn bits_count(&self) -> usize {
+    pub fn bits_count(&self) -> usize {
         match &self.kind {
             Kind::OpenBabel { kind: ob_fp_kind } => ob_fp_kind.get_nbits().clone() as usize
         }
@@ -64,10 +88,12 @@ impl FingerprintDocument {
         }
     }
 
-    pub fn new_from_chembl(source_chembl: &chiral_db_sources::chembl::SourceChembl, fpk: &Kind) -> Self {
+    pub fn new_from_chembl(fpk: &Kind) -> Self {
         let mut ids: Vec<String> = vec![];
         let mut data: common::FingerprintData = vec![];
         let kind = fpk.clone();
+        let mut source_chembl = chiral_db_sources::chembl::SourceChembl::new();
+        source_chembl.load();
 
         match fpk {
             Kind::OpenBabel { kind: ob_fp_kind } => {
@@ -92,6 +118,10 @@ impl FingerprintDocument {
     pub fn get_id(&self, idx: usize) -> &String {
         &self.ids[idx]
     }
+
+    pub fn get_kind(&self) -> &Kind {
+        &self.kind
+    }
 }
 
 #[cfg(test)]
@@ -114,9 +144,7 @@ mod test_fp {
     #[test]
     fn test_new_from_chembl() {
         let fpk = Kind::OpenBabel { kind: openbabel::fingerprint::Kind::ECFP4 { nbits: 2048} };
-        let mut sc = chiral_db_sources::chembl::SourceChembl::new();
-        sc.load();
-        let fp_doc = FingerprintDocument::new_from_chembl(&sc, &fpk);
+        let fp_doc = FingerprintDocument::new_from_chembl(&fpk);
         assert_eq!(fp_doc.data.len(), fp_doc.bits_count() / 32 * 99);
     }
 }

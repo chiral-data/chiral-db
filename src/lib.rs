@@ -1,5 +1,5 @@
 mod common;
 mod utils;
-mod fingerprint;
-mod similarity;
+pub mod fingerprint;
+pub mod similarity;
 

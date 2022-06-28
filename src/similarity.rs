@@ -21,11 +21,21 @@ pub fn similarity_tanimoto(fpd_1: &[u32], fpd_2: &[u32]) -> f32 {
     }
 }
 
-pub fn query_similarity(fpd_query: &Vec<u32>, fp_doc: &fingerprint::FingerprintDocument, cut_off: f32) -> Vec<(f32, String)> {
+pub fn query_similarity(fpd_query: &Vec<u32>, fp_doc: &fingerprint::FingerprintDocument, cut_off: f32) -> Vec<(String, f32)> {
     (0..(fp_doc.len()))
-        .map(|idx| (similarity_tanimoto(fpd_query.as_slice(), fp_doc.get_data(idx)), fp_doc.get_id(idx).to_string()))
-        .filter(|(tani_eff, _id)| *tani_eff >= cut_off)
+        .map(|idx| (
+            fp_doc.get_id(idx).to_string(),
+            similarity_tanimoto(fpd_query.as_slice(), fp_doc.get_data(idx))
+        ))
+        .filter(|(_id, tani_eff)| *tani_eff >= cut_off)
         .collect()
+}
+
+pub fn query_similarity_for_smiles(smiles: &String, fp_doc: &fingerprint::FingerprintDocument, cut_off: f32) -> std::collections::HashMap<String, f32> {
+    let fpd_query = fingerprint::get_fingerprint_from_smiles(&fp_doc.get_kind(), smiles); 
+    query_similarity(&fpd_query, fp_doc, cut_off)
+        .into_iter()
+        .collect() 
 }
 
 #[cfg(test)]
@@ -47,12 +57,14 @@ mod test_similarity {
     #[test]
     fn test_query_similarity() {
         let fpk = fingerprint::Kind::OpenBabel { kind: openbabel::fingerprint::Kind::ECFP4 { nbits: 2048} };
-        let mut sc = chiral_db_sources::chembl::SourceChembl::new();
-        sc.load();
-        let fp_doc = fingerprint::FingerprintDocument::new_from_chembl(&sc, &fpk);
-        let fpd_query = fingerprint::get_fingerprint_from_smiles(&fpk, &String::from("Cc1cc(NC(=O)c2cc(Cl)cc(Cl)c2O)ccc1Sc1nc2ccccc2s1"));
-        let res = query_similarity(&fpd_query, &fp_doc, 1.0);
-        assert_eq!(res.len(), 1);
-        assert_eq!(res[0].1, "CHEMBL263810");
+        let fp_doc = fingerprint::FingerprintDocument::new_from_chembl(&fpk);
+        let smiles = String::from("Cc1cc(NC(=O)c2cc(Cl)cc(Cl)c2O)ccc1Sc1nc2ccccc2s1");
+        let fpd_query = fingerprint::get_fingerprint_from_smiles(&fpk, &smiles);
+        let res_fpd = query_similarity(&fpd_query, &fp_doc, 1.0);
+        assert_eq!(res_fpd.len(), 1);
+        assert_eq!(res_fpd[0].0, "CHEMBL263810");
+        let res_smiles = query_similarity_for_smiles(&smiles, &fp_doc, 1.0);
+        assert_eq!(res_smiles.keys().len(), 1);
+        assert!(res_smiles.contains_key("CHEMBL263810"));
     }
 }
