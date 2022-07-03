@@ -1,3 +1,6 @@
+//! Helper Methods
+//! 
+
 extern crate cxx;
 
 pub fn cxx_vector_into_vector<T: cxx::vector::VectorElement + Clone>(vec_cxx: &cxx::Vector<T>) -> Vec<T> {

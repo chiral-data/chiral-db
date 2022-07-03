@@ -2,9 +2,23 @@
 name = "chiral-db"
 version = "0.1.0"
 edition = "2018"
+authors = ["Qin Wan <rogerwq@gmail.com>"]
+license = "MIT"
+description = "ChiralDB: a cheminformatics database written in Rust"
+repository = "https://github.com/chiral-data/chiral-db"
+homepage = "https://github.com/chiral-data/chiral-db"
+documentation = "https://docs.rs/chiral-db"
+keywords = ["cheminformatics", "openbabel"]
+categories = ["science"]
 
 [dependencies]
 cxx = "1.0"
-openbabel = "0.3.1"
+serde = "1.0.97"
+serde_derive = "1.0"
+toml = "0.5"
+openbabel = "0.3.2"
 # openbabel = { package = "openbabel", git = "https://github.com/rogerwq/openbabel-rust.git" }
-chiral_db_sources = { package = "chiral-db-sources", git = "https://github.com/chiral-data/chiral-db-sources.git" }
+# openbabel = { package = "openbabel", path = "../openbabel-rust"}
+chiral-db-sources = "0.1.0"
+# chiral_db_sources = { package = "chiral-db-sources", git = "https://github.com/chiral-data/chiral-db-sources.git" } 
+# chiral_db_sources = { package = "chiral-db-sources", path = "../chiral-db-sources" }
